@@ -11,53 +11,49 @@ const STRIP_HEADERS = new Set([
   "x-forwarded-port",
 ]);
 
-export async function GET(req: NextRequest) {
-  return handleRelay(req);
-}
-
-export async function POST(req: NextRequest) {
-  return handleRelay(req);
-}
-
-export async function PUT(req: NextRequest) {
-  return handleRelay(req);
-}
-
-export async function DELETE(req: NextRequest) {
-  return handleRelay(req);
-}
-
-async function handleRelay(req: NextRequest) {
+export default async function handler(req: NextRequest) {
   if (!TARGET_BASE) {
-    return new Response("Service temporarily unavailable", { status: 503 });
+    return new Response("Misconfigured: GAME_NODE is not set", { status: 500 });
   }
 
   try {
-    const url = new URL(req.url);
-    const targetUrl = TARGET_BASE + 
-      (url.pathname === '/api/relay' ? '/' : url.pathname.replace('/api/relay', '')) + 
-      url.search;
+    const pathStart = req.url.indexOf("/", 8);
+    const targetUrl = pathStart === -1 
+      ? TARGET_BASE + "/" 
+      : TARGET_BASE + req.url.slice(pathStart);
 
-    const headers = new Headers();
-    const clientIp = req.headers.get('x-real-ip') || req.headers.get('x-forwarded-for');
+    const out = new Headers();
+    let clientIp: string | null = null;
 
-    for (const [key, value] of req.headers) {
-      if (STRIP_HEADERS.has(key) || key.startsWith('x-vercel-') || key === 'x-real-ip') continue;
-      if (key === 'x-forwarded-for' && clientIp) continue;
-      headers.set(key, value);
+    for (const [k, v] of req.headers) {
+      if (STRIP_HEADERS.has(k)) continue;
+      if (k.startsWith("x-vercel-")) continue;
+      if (k === "x-real-ip") {
+        clientIp = v;
+        continue;
+      }
+      if (k === "x-forwarded-for") {
+        if (!clientIp) clientIp = v;
+        continue;
+      }
+      out.set(k, v);
     }
-    if (clientIp) headers.set('x-forwarded-for', clientIp);
+    if (clientIp) out.set("x-forwarded-for", clientIp);
+
+    const method = req.method;
+    const hasBody = method !== "GET" && method !== "HEAD";
 
     const response = await fetch(targetUrl, {
-      method: req.method,
-      headers,
-      body: req.body,
-      redirect: 'manual',
+      method,
+      headers: out,
+      body: hasBody ? req.body : undefined,
+      duplex: "half" as any,        // <-- this is needed for streaming
+      redirect: "manual",
     });
 
     return response;
   } catch (err) {
-    console.error(err);
-    return new Response("Connection error", { status: 502 });
+    console.error("relay error:", err);
+    return new Response("Bad Gateway: Tunnel Failed", { status: 502 });
   }
 }
