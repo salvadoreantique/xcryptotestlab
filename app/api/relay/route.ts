@@ -34,10 +34,12 @@ async function handleRelay(req: NextRequest) {
 
   try {
     const url = new URL(req.url);
-    const targetUrl = TARGET_BASE + (url.pathname === '/api/relay' ? '/' : url.pathname.replace('/api/relay', '')) + url.search;
+    const targetUrl = TARGET_BASE + 
+      (url.pathname === '/api/relay' ? '/' : url.pathname.replace('/api/relay', '')) + 
+      url.search;
 
     const headers = new Headers();
-    let clientIp = req.headers.get('x-real-ip') || req.headers.get('x-forwarded-for');
+    const clientIp = req.headers.get('x-real-ip') || req.headers.get('x-forwarded-for');
 
     for (const [key, value] of req.headers) {
       if (STRIP_HEADERS.has(key) || key.startsWith('x-vercel-') || key === 'x-real-ip') continue;
@@ -50,7 +52,6 @@ async function handleRelay(req: NextRequest) {
       method: req.method,
       headers,
       body: req.body,
-      duplex: 'half',
       redirect: 'manual',
     });
 
