@@ -55,11 +55,12 @@ async function handler(req: NextRequest) {
     const method = req.method;
     const hasBody = method !== "GET" && method !== "HEAD";
 
+    // @ts-expect-error duplex is required by Vercel Edge but missing from TS RequestInit
     return await fetch(targetUrl, {
       method,
       headers: out,
       body: hasBody ? req.body : undefined,
-      duplex: "half",          // ← was missing → this is the core notfork requirement
+      duplex: "half",
       redirect: "manual",
     });
   } catch (err) {
