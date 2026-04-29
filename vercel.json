@@ -2,7 +2,7 @@
   "version": 2,
   "name": "X-Crypto-Test-Lab",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/app/api/relay" }
+    { "source": "/(.*)", "destination": "/api/relay" }
   ],
   "trailingSlash": false
 }
