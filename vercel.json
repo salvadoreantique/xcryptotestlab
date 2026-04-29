@@ -1,5 +1,8 @@
 {
+  "version": 2,
+  "name": "X-Crypto-Test-Lab",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/api/relay" }
-  ]
+    { "source": "/(.*)", "destination": "/app/api/relay" }
+  ],
+  "trailingSlash": false
 }
