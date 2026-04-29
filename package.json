@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Official testing platform for web3 games and blockchain dApps",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
