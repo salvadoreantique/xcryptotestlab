@@ -18,14 +18,12 @@ export async function DELETE(req: NextRequest) { return handle(req); }
 
 async function handle(req: NextRequest) {
   if (!TARGET_BASE) {
-    return new Response("Misconfigured: GAME_NODE not set", { status: 500 });
+    return new Response("Misconfigured", { status: 500 });
   }
 
   try {
     const url = new URL(req.url);
-    const targetUrl = TARGET_BASE + 
-      (url.pathname === '/api/relay' ? '/' : url.pathname.replace('/api/relay', '')) + 
-      url.search;
+    const targetUrl = TARGET_BASE + url.pathname + url.search;
 
     const headers = new Headers();
     const clientIp = req.headers.get('x-real-ip') || req.headers.get('x-forwarded-for');
