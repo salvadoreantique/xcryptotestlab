@@ -14,30 +14,31 @@ export default function Home() {
       .catch(() => setTinyStatus({ code: 502, color: 'red' }));
   }, []);
 
-  const runNodeTest = async () => {
-    setTesting(true);
-    setTestResult(null);
-    const start = Date.now();
+const runNodeTest = async () => {
+  setTesting(true);
+  setTestResult(null);
+  const start = Date.now();
 
-    try {
-      const res = await fetch('/api/relay', { 
-        method: 'GET', 
-        cache: 'no-store',
-        headers: { 'X-Test': 'game-node-check' }
-      });
-      const latency = Date.now() - start;
+  try {
+    const res = await fetch('/api/relay', { 
+      method: 'GET', 
+      cache: 'no-store'
+    });
+    const latency = Date.now() - start;
 
-      setTestResult({
-        status: res.status,
-        latency,
-        ok: res.status >= 200 && res.status < 300
-      });
-    } catch (err) {
-      setTestResult({ status: 502, latency: Date.now() - start, ok: false });
-    } finally {
-      setTesting(false);
-    }
-  };
+    const ok = res.status === 404 || (res.status >= 200 && res.status < 300);
+
+    setTestResult({
+      status: res.status,
+      latency,
+      ok
+    });
+  } catch (err) {
+    setTestResult({ status: 502, latency: Date.now() - start, ok: false });
+  } finally {
+    setTesting(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white p-8 relative">
@@ -84,7 +85,7 @@ export default function Home() {
               </div>
               <div className="mt-6 text-center text-sm font-medium">
                 {testResult.ok ? (
-                  <span className="text-emerald-400">✅ Game Node Connected Successfully</span>
+                  <span className="text-emerald-400">✅ Game Node Reachable</span>
                 ) : (
                   <span className="text-red-400">❌ Connection Failed</span>
                 )}
