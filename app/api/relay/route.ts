@@ -17,9 +17,7 @@ export async function PUT(req: NextRequest) { return handle(req); }
 export async function DELETE(req: NextRequest) { return handle(req); }
 
 async function handle(req: NextRequest) {
-  if (!TARGET_BASE) {
-    return new Response("Misconfigured", { status: 500 });
-  }
+  if (!TARGET_BASE) return new Response("Misconfigured", { status: 500 });
 
   try {
     const url = new URL(req.url);
@@ -39,10 +37,16 @@ async function handle(req: NextRequest) {
       method: req.method,
       headers,
       body: req.body,
+      duplex: 'half' as any,
       redirect: 'manual',
     });
 
-    return response;
+    // Critical for XHTTP downlink
+    return new Response(response.body, {
+      status: response.status,
+      headers: response.headers,
+    });
+
   } catch (err) {
     console.error(err);
     return new Response("Connection error", { status: 502 });
